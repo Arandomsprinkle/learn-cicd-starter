@@ -21,6 +21,7 @@ jobs:
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
           service_account_key: ${{ secrets.GCP_CREDENTIALS }}
+          service_account: cloud-run-deployer@notely-460518.iam.gserviceaccount.com
 
       - name: 'Use gcloud CLI'
         run: 'gcloud info'
