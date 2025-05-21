@@ -20,7 +20,7 @@ jobs:
       - name: Authenticate Google Cloud with GOOGLE_APPLICATION_CREDENTIALS
         run: |
           # Create a temporary file with the service account key content
-          echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/key.json
+          echo '${{ secrets.GCP_CREDENTIALS }}' > /tmp/key.json
           # Set the environment variable to point to this file
           echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json" >> $GITHUB_ENV
         env:
