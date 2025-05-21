@@ -37,7 +37,8 @@ jobs:
           echo "--- End Debug ---"
         env:
           ACTIONS_STEP_DEBUG: true # Important for showing content
-
+      - name: Authenticate with service account
+        run: gcloud auth activate-service-account --key-file="/tmp/key.json"
       - name: 'Set Google Cloud Project (Explicitly)'
         run: gcloud config set project notely-460518
 
