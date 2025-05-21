@@ -2,7 +2,6 @@ on:
   push:
     branches: [main]
 
-
 jobs:
   deploy:
     name: Deploy
@@ -17,14 +16,21 @@ jobs:
         with:
           go-version: "1.23.0"
 
-      - name: 'Set up Cloud SDK'
+      - name: 'Set up Cloud SDK and Authenticate'
         uses: 'google-github-actions/setup-gcloud@v2'
         with:
-          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
-          service_account: cloud-run-deployer@notely-460518.iam.gserviceaccount.com
+          # Use credentials_json (preferred) for your full service account key JSON
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          # The project can often be inferred from the key, but setting it explicitly is good.
+          project_id: notely-460518
+          # The 'service_account' parameter is usually not needed when using credentials_json
+          # If you keep it, ensure it matches the email in your JSON key.
+          # service_account: cloud-run-deployer@notely-460518.iam.gserviceaccount.com
 
-      - name: 'Use gcloud CLI'
-        run: 'gcloud info'
+      - name: 'Verify gcloud Configuration'
+        run: |
+          gcloud info
+          gcloud config list
 
       - name: Build app for main
         run: ./scripts/buildprod.sh
