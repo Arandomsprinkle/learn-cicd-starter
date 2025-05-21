@@ -16,36 +16,26 @@ jobs:
         with:
           go-version: "1.23.0"
 
-      - name: 'Set up Cloud SDK and Authenticate'
-        uses: 'google-github-actions/setup-gcloud@v2'
-        with:
-          # Use credentials_json (preferred) for your full service account key JSON
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
-          # The project can often be inferred from the key, but setting it explicitly is good.
-          project_id: notely-460518
-          # The 'service_account' parameter is usually not needed when using credentials_json
-          # If you keep it, ensure it matches the email in your JSON key.
-          # service_account: cloud-run-deployer@notely-460518.iam.gserviceaccount.com
-      - name: 'Debug GCP_CREDENTIALS Secret'
+      # --- NEW AUTHENTICATION METHOD ---
+      - name: Authenticate Google Cloud with GOOGLE_APPLICATION_CREDENTIALS
         run: |
-          echo "Attempting to validate GCP_CREDENTIALS secret..."
-          echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/service_account_key.json
-          cat /tmp/service_account_key.json # This will print the content (it's a secret, so be cautious if logs are public)
-          
-          # Try to parse it with jq to see if it's valid JSON
-          jq . /tmp/service_account_key.json
-          
-          # Clean up the file
-          rm /tmp/service_account_key.json
+          # Create a temporary file with the service account key content
+          echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/key.json
+          # Set the environment variable to point to this file
+          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json" >> $GITHUB_ENV
         env:
-          # This is needed to prevent GitHub Actions from redacting the output of cat
-          # when the secret is printed. Use with CAUTION if your logs are public.
-          # For private repos, it's generally fine for debugging.
+          # This is important to ensure the secret content is not redacted, for debugging only.
+          # Remove this 'env' block if your logs are public and you're confident it works.
           ACTIONS_STEP_DEBUG: true
 
-      - name: 'Verify gcloud Configuration'
+      - name: 'Set Google Cloud Project (Explicitly)'
+        run: gcloud config set project notely-460518
+
+      - name: 'Verify gcloud Configuration (Crucial Debug Step)'
         run: |
+          echo "Running gcloud info..."
           gcloud info
+          echo "Running gcloud config list..."
           gcloud config list
 
       - name: Build app for main
@@ -53,3 +43,8 @@ jobs:
 
       - name: gcloud builds submit
         run: gcloud builds submit --tag us-central1-docker.pkg.dev/notely-460518/notely-ar-repo/notely:latest . --project notely-460518
+
+      # --- Clean up the temporary key file (Good practice) ---
+      - name: Clean up service account key
+        if: always() # Run even if previous steps fail
+        run: rm -f /tmp/key.json
