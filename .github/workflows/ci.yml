@@ -18,7 +18,7 @@ jobs:
         with:
           go-version: "1.23.0"
 
-      - name: Run Go Version
+      - name: coverage test
         run: go test -cover ./...
 
   style:
@@ -40,7 +40,7 @@ jobs:
       - name: Style
         run: test -z $(go fmt ./...)
 
-      - name: StaticCheck
+      - name: staticCheck
         run: staticcheck ./...
 
   gosec:
@@ -59,5 +59,5 @@ jobs:
       - name: Install gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
-      - name: GoSec
+      - name: goSec
         run: gosec ./...
