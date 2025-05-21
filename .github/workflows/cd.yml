@@ -27,7 +27,26 @@ jobs:
           # This is important to ensure the secret content is not redacted, for debugging only.
           # Remove this 'env' block if your logs are public and you're confident it works.
           ACTIONS_STEP_DEBUG: true
+         # --- ADD THIS DEBUG STEP BACK IN ---
+      - name: 'Debug GCP_CREDENTIALS Secret Content in File'
+        run: |
+          echo "--- Content of /tmp/key.json ---"
+          cat /tmp/key.json
+          echo "--- Attempting to parse /tmp/key.json with jq ---"
+          jq . /tmp/key.json || true # Use || true to prevent job failure if jq fails
+          echo "--- End Debug ---"
+        env:
+          ACTIONS_STEP_DEBUG: true # Important for showing content
 
+      - name: 'Set Google Cloud Project (Explicitly)'
+        run: gcloud config set project notely-460518
+
+      - name: 'Verify gcloud Configuration (Crucial Debug Step)'
+        run: |
+          echo "Running gcloud info..."
+          gcloud info
+          echo "Running gcloud config list..."
+          gcloud config list
       - name: 'Set Google Cloud Project (Explicitly)'
         run: gcloud config set project notely-460518
 
