@@ -26,6 +26,22 @@ jobs:
           # The 'service_account' parameter is usually not needed when using credentials_json
           # If you keep it, ensure it matches the email in your JSON key.
           # service_account: cloud-run-deployer@notely-460518.iam.gserviceaccount.com
+      - name: 'Debug GCP_CREDENTIALS Secret'
+        run: |
+          echo "Attempting to validate GCP_CREDENTIALS secret..."
+          echo "${{ secrets.GCP_CREDENTIALS }}" > /tmp/service_account_key.json
+          cat /tmp/service_account_key.json # This will print the content (it's a secret, so be cautious if logs are public)
+          
+          # Try to parse it with jq to see if it's valid JSON
+          jq . /tmp/service_account_key.json
+          
+          # Clean up the file
+          rm /tmp/service_account_key.json
+        env:
+          # This is needed to prevent GitHub Actions from redacting the output of cat
+          # when the secret is printed. Use with CAUTION if your logs are public.
+          # For private repos, it's generally fine for debugging.
+          ACTIONS_STEP_DEBUG: true
 
       - name: 'Verify gcloud Configuration'
         run: |
