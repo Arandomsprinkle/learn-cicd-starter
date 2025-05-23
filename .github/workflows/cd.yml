@@ -15,28 +15,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: "1.23.0"
-
-      # --- NEW AUTHENTICATION METHOD ---
-      - name: Authenticate Google Cloud with GOOGLE_APPLICATION_CREDENTIALS
-        run: |
-          # Create a temporary file with the service account key content
-          echo '${{ secrets.GCP_CREDENTIALS }}' > /tmp/key.json
-          # Set the environment variable to point to this file
-          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json" >> $GITHUB_ENV
-        env:
-          # This is important to ensure the secret content is not redacted, for debugging only.
-          # Remove this 'env' block if your logs are public and you're confident it works.
-          ACTIONS_STEP_DEBUG: true
-         # --- ADD THIS DEBUG STEP BACK IN ---
-      - name: 'Debug GCP_CREDENTIALS Secret Content in File'
-        run: |
-          echo "--- Content of /tmp/key.json ---"
-          cat /tmp/key.json
-          echo "--- Attempting to parse /tmp/key.json with jq ---"
-          jq . /tmp/key.json || true # Use || true to prevent job failure if jq fails
-          echo "--- End Debug ---"
-        env:
-          ACTIONS_STEP_DEBUG: true # Important for showing content
       - name: Authenticate with service account
         run: gcloud auth activate-service-account --key-file="/tmp/key.json"
       - name: 'Set Google Cloud Project (Explicitly)'
@@ -63,8 +41,5 @@ jobs:
 
       - name: gcloud builds submit
         run: gcloud builds submit --tag us-central1-docker.pkg.dev/notely-460518/notely-ar-repo/notely:latest . --project notely-460518
-
-      # --- Clean up the temporary key file (Good practice) ---
-      - name: Clean up service account key
-        if: always() # Run even if previous steps fail
-        run: rm -f /tmp/key.json
+      - name: Deploy to Cloud Run
+        run: gcloud run deploy notely --image us-central1-docker.pkg.dev/notely-460518/notely-ar-repo/notely:latest --region us-central1 --allow-unauthenticated --project notely-460518 --max-instances=4
